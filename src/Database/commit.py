@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 def commit_data_on_db(chat_list,db:Session):
     for item in chat_list:
         registros = DB_huggy(
-                id = item['chat_id'],
+                chat_id = item['chat_id'],
                 agent_id=item['agent_id'],
                 tabulation_id = item['tabulation_id'],
                 client_id = item['client_id'],

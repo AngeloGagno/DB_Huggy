@@ -1,9 +1,10 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Integer
 from Database.database import Base
 
 class DB_huggy(Base):
     __tablename__ = 'huggy_chats_data'
-    id = Column(String,primary_key=True)
+    id = Column(Integer, primary_key = True, autoincrement=True)
+    chat_id = Column(String)
     agent_id = Column(String)
     tabulation_id = Column(String)
     client_id = Column(String)
