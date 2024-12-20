@@ -1,53 +1,73 @@
 import requests
 import json
+from dotenv import load_dotenv
+import os
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 class Huggy_API:
 
     def __init__(self):
+        self.api_key_v3 = self._API_key_v3()
+        self.api_key_v2 = self._API_key_v2() 
         self.header_v3 = self._headers_v3()
-        self.header_v2 = self._headers_v2()
+        self.header_v2 = self._headers_v2()     
         self.pagination = self._pagination()
         self.channel = self._channels()
         self.raw_url = self._URL()
 
+    def _API_key_v3(self):
+        load_dotenv()
+        return os.getenv('Huggy_API_V3')
+
+    def _API_key_v2(self):
+        load_dotenv()
+        return os.getenv('Huggy_API_V2')
+        
     def _URL(self):
         return 'https://api.huggy.app/v3/'
 
     def _headers_v3(self):
+        auth = f'Bearer {self.api_key_v3}'
         return {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjgxZTVhZDNiYmZlYWJlOGQwNDIwYzJlMGNkMmVlNjA4YzgzMDk4YTczMTllODVmZDExNzQwYWU1NTk4M2YzMWU0OGNhMDg3ZTc0ZTM0ODFmIn0.eyJhdWQiOiJBUFAtMmVmNTdlZWMtY2VmNS00ZTExLTk3MmEtNGI5YzAxNjA3YmE4IiwianRpIjoiODFlNWFkM2JiZmVhYmU4ZDA0MjBjMmUwY2QyZWU2MDhjODMwOThhNzMxOWU4NWZkMTE3NDBhZTU1OTgzZjMxZTQ4Y2EwODdlNzRlMzQ4MWYiLCJpYXQiOjE3MzQ1MzA1MjcsIm5iZiI6MTczNDUzMDUyNywiZXhwIjoxNzUwMjU1MzI3LCJzdWIiOiIxMjUzNjYiLCJzY29wZXMiOlsiaW5zdGFsbF9hcHAiLCJyZWFkX2FnZW50X3Byb2ZpbGUiXX0.nBidFTLeDrud7gw49qaH_iTPjFH9M9TTHWGIIeOYyZOGldKPyFjoSB2KNjuCk8ldDDNqKXlfj0EzpkK53YmwPBnyHDMbeSJNmwkPgvo10JuDWPjqcYy6v-XAFCqBS30g2kqNSJfU7S5scVGle_k5viFE2lj-Rzb0R3QI3pejQnM' ,
+    'Authorization': auth,
     }
 
     def _headers_v2(self):
+        auth = f'Bearer {self.api_key_v2}'
         return {
-    'Authorization': 'Bearer ff2081a06895a3e2342f7ab16e50bce9'
+    'Authorization': auth
         }
 
     def _pagination(self):
-        return '?page'
+        return '?page='
 
     def _channels(self,channel='whatsapp'):
         return f'channel={channel}'
 
-    def get_chat_list(self,page=1):
-        url = f'{self.raw_url}/chats{self.pagination}&{self.channel}'
-        return requests.get(url,headers=self.header_v3).json()
+    def get_chat_list(self,page:int):
+        session = requests.Session()
+        retry = Retry(
+            total=5,  # Tenta até 5 vezes
+            backoff_factor=1,  # Atraso entre tentativas: 1s, 2s, 4s, etc.
+            status_forcelist=[429, 500, 502, 503, 504], 
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount("https://", adapter)
+        url = f'{self.raw_url}chats{self.pagination}{page}&{self.channel}'
+        return session.get(url,headers=self.header_v3).json()
 
     def get_chat(self,id):
-        url = f'{self.raw_url}/chats/{id}/messages'
+        url = f'{self.raw_url}chats/{id}/messages'
         return requests.get(url,headers=self.header_v3).json()
 
-    def get_feedback(self,ids):
-        url = f'https://api.huggy.app/v2/chats/{ids}/feedback'
-        return requests.get(url,headers=self.header_v2).json()
 
 class Huggy_Parameters:
     def __init__(self,chat_json):
         self.chat = chat_json
 
-    
     def chat_id(self):
         return self.chat['id']
     
@@ -62,7 +82,7 @@ class Huggy_Parameters:
     
     def status_chat(self):
         return self.chat.get('situation',None)
-
+    
     def creation_date(self):
         return self.chat['createdAt']
     
@@ -75,6 +95,5 @@ class Huggy_Parameters:
     def closed_date(self):
         return self.chat.get('closedAt',None)
                
-        
-chat = Huggy_API().get_chat_list()[1]
-print(Huggy_Parameters(chat).closed_date())
+if __name__ == "__main__":
+    print(len(Huggy_API().get_chat(id=197960766)))
