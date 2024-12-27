@@ -1,7 +1,7 @@
 from datetime import datetime,timedelta
-from request import Huggy_API,Huggy_Parameters
+from API.request import Huggy_API,Huggy_Parameters
 
-def get_chats_description():
+def get_chats_description_update():
     date_1_w_ago = datetime.now() - timedelta(days=7)
     request = Huggy_API()
     pag = 1
@@ -23,7 +23,6 @@ def get_chats_description():
             chat = {'chat_id':str(chat_id),'agent_id':agent_id,'tabulation_id':tabulation_id,
             'client_id':client_id,'status':status_chat,'creation_date':creation_date,'updated_at':update_date,'attended_at':attended_at_date,
             'closed_at':closed_date}
-            print(creation_date)
             chats_list.append(chat)
             if creation_date <= date_1_w_ago.strftime(f'%Y-%m-%d'):
                 return chats_list

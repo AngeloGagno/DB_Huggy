@@ -3,8 +3,7 @@ from Database.database import Base
 
 class DB_huggy(Base):
     __tablename__ = 'huggy_chats_data'
-    id = Column(Integer, primary_key = True, autoincrement=True)
-    chat_id = Column(String)
+    chat_id = Column(String,primary_key = True)
     agent_id = Column(String)
     tabulation_id = Column(String)
     client_id = Column(String)

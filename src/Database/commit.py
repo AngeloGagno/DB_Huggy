@@ -15,5 +15,5 @@ def commit_data_on_db(chat_list,db:Session):
                 closed_date=item['closed_at'],
         )
         db.merge(registros)
-    db.commit()
+        db.commit()
     print("Dados inseridos com sucesso!")
